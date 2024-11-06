@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2 English Test</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background-color: #f7f7f7; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh;
+      flex-direction: column;
+    }
+    .container { 
+      width: 80%; 
+      max-width: 700px; 
+      background-color: white; 
+      padding: 30px; 
+      border-radius: 8px; 
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); 
+      text-align: center; 
+    }
+    h1 { 
+      font-size: 2em; 
+      margin-bottom: 20px;
+      color: black;
+    }
+    .button { 
+      padding: 15px 25px; 
+      margin: 10px; 
+      background-color: #4CAF50; 
+      color: white; 
+      border: none; 
+      border-radius: 5px; 
+      cursor: pointer; 
+      transition: background-color 0.3s ease;
+    }
+    .button:hover { 
+      background-color: #45a049; 
+    }
+    .question { 
+      font-weight: bold; 
+      font-size: 1.2em; 
+      margin-bottom: 20px; 
+      color: black;
+    }
+    .options { 
+      margin: 10px 0; 
+    }
+    .options button {
+      padding: 12px 24px;
+      margin: 5px;
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      width: 80%;
+      border-radius: 5px;
+      color: black;  /* Ensures answer text is visible */
+    }
+    .options button:hover {
+      background-color: #e0e0e0;
+    }
+    .result { 
+      font-size: 1.5em; 
+      font-weight: bold; 
+      color: black; 
+      margin-top: 20px;
+    }
+    .animated {
+      animation: fadeIn 1s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Admin Login Form -->
+  <div id="admin-login" class="container animated">
+    <h1>Admin Login</h1>
+    <input type="email" id="admin-email" placeholder="Enter admin email" />
+    <input type="password" id="admin-password" placeholder="Enter admin password" />
+    <button class="button" onclick="loginAdmin()">Login</button>
+  </div>
+
+  <!-- Student Name Entry -->
+  <div id="student-name-entry" class="container animated" style="display: none;">
+    <h1>Enter Your Name</h1>
+    <input type="text" id="student-name" placeholder="Enter your name" />
+    <button class="button" onclick="startTest()">Start Test</button>
+  </div>
+
+  <!-- Home Page for Students -->
+  <div id="home" class="container animated">
+    <h1>Welcome To Irmuun's Test for the English Team</h1>
+    <p>Test your English skills with a simple, easy quiz.</p>
+    <button class="button" onclick="showNameEntry()">Start Test</button>
+  </div>
+
+  <!-- Test Page for Students -->
+  <div id="test" class="container" style="display: none;" class="animated">
+    <p class="question" id="question-text">Question text here...</p>
+    <div class="options">
+      <button class="button" onclick="answerQuestion(0)">Option 1</button>
+      <button class="button" onclick="answerQuestion(1)">Option 2</button>
+      <button class="button" onclick="answerQuestion(2)">Option 3</button>
+      <button class="button" onclick="answerQuestion(3)">Option 4</button>
+    </div>
+  </div>
+
+  <!-- Results Page for Students -->
+  <div id="results" class="container" style="display: none;" class="animated">
+    <p class="result" id="result-text">Your score: </p>
+    <button class="button" onclick="resetTest()">Take Test Again</button>
+  </div>
+
+  <!-- Admin Panel (Visible only for Admin) -->
+  <div id="admin-panel" class="container" style="display: none;">
+    <h1>Admin Panel</h1>
+    <p>Number of students participated: <span id="student-count">0</span></p>
+    <p>Students currently active: <span id="active-students">0</span></p>
+    <h2>Student Scores</h2>
+    <ul id="student-scores"></ul>
+    <button class="button" onclick="logoutAdmin()">Logout</button>
+  </div>
+
+  <script>
+    // Global Variables
+    const questions = [
+      { text: "Which sentence is in the past tense?", options: ["I walk to school every day.", "She will walk to school tomorrow.", "He walked to school yesterday.", "They are walking to school now."], answer: 2 },
+      { text: "Which word means the same as 'happy'?", options: ["Sad", "Angry", "Joyful", "Tired"], answer: 2 },
+      { text: "Choose the correct sentence.", options: ["He go to school every day.", "They goes to school every day.", "She goes to school every day.", "We is going to school every day."], answer: 2 },
+      { text: "Complete the sentence: 'I will meet you ___ the bus stop.'", options: ["on", "at", "in", "by"], answer: 1 },
+      { text: "Fill in the blank: 'She is ___ honest person.'", options: ["a", "an", "the", "none"], answer: 1 },
+      // Add more questions as needed...
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let studentCount = 0;
+    let activeStudents = 0;
+    let studentScores = [];  // Array to store student scores
+    let studentName = '';
+    let testCompleted = false;  // Track if student completed the test
+
+    // Show name entry page for students
+    function showNameEntry() {
+      document.getElementById("home").style.display = "none";
+      document.getElementById("student-name-entry").style.display = "block";
+    }
+
+    // Start Test (for students)
+    function startTest() {
+      studentName = document.getElementById("student-name").value;
+      if (!studentName) {
+        alert("Please enter your name!");
+        return;
+      }
+      studentCount++;
+      activeStudents++;
+      document.getElementById("student-name-entry").style.display = "none";
+      document.getElementById("test").style.display = "block";
+      loadQuestion();
+    }
+
+    // Load Questions
+    function loadQuestion() {
+      if (currentQuestion < questions.length) {
+        document.getElementById("question-text").textContent = questions[currentQuestion].text;
+        const buttons = document.querySelectorAll(".options button");
+        for (let i = 0; i < buttons.length; i++) {
+          buttons[i].textContent = questions[currentQuestion].options[i];
+        }
+      } else {
+        showResults();
+      }
+    }
+
+    // Answer Question
+    function answerQuestion(answer) {
+      if (answer === questions[currentQuestion].answer) {
+        score++;
+      }
+      currentQuestion++;
+      loadQuestion();
+    }
+
+    // Show Results (Percentage Score)
+    function showResults() {
+      document.getElementById("test").style.display = "none";
+      document.getElementById("results").style.display = "block";
+      const percentage = Math.round((score / questions.length) * 100);
+      document.getElementById("result-text").textContent = `Your score: ${percentage}%`;
+
+      // Store student score in admin panel
+      studentScores.push({ name: studentName, score: percentage });
+      updateAdminPanel();
+      testCompleted = true;  // Mark the test as completed
+    }
+
+    // Reset Test (for students)
+    function resetTest() {
+      if (testCompleted) {
+        alert("You have already completed the test!");
+        return;
+      }
+
+      currentQuestion = 0;
+      score = 0;
+      document.getElementById("results").style.display = "none";
+      document.getElementById("test").style.display = "block";
+      loadQuestion();
+    }
+
+    // Admin Login
+    function loginAdmin() {
+      const email = document.getElementById("admin-email").value;
+      const password = document.getElementById("admin-password").value;
+      if (email === 'sergelenirmuun@gmail.com' && password === 'irmuun0621') {
+        document.getElementById("admin-login").style.display = "none";
+        document.getElementById("admin-panel").style.display = "block";
+        updateAdminPanel();
+      } else {
+        alert("Invalid credentials!");
+      }
+    }
+
+    // Admin Panel Updates
+    function updateAdminPanel() {
+      document.getElementById("student-count").textContent = studentCount;
+      document.getElementById("active-students").textContent = activeStudents;
+      const studentScoresList = document.getElementById("student-scores");
+      studentScoresList.innerHTML = "";
+      studentScores.forEach(student => {
+        const li = document.createElement("li");
+        li.textContent = `${student.name}: ${student.score}%`;
+        studentScoresList.appendChild(li);
+      });
+    }
+
+    // Logout Admin
+    function logoutAdmin() {
+      document.getElementById("admin-panel").style.display = "none";
+      document.getElementById("admin-login").style.display = "block";
+    }
+  </script>
+
+</body>
+</html>
